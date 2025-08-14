@@ -1,0 +1,14 @@
+.vscode/
+.zig-cache/
+
+[Bb]uild/
+[Bb]in/
+
+zig-out/
+
+*.so
+*.o
+*.obj
+*.exe
+*.dll
+*.pdb
