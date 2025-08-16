@@ -67,6 +67,11 @@ struct same_size_float {
 template <typename T>
 using same_size_float_t = typename same_size_float<T>::type;
 
+template <typename T>
+consteval size_t BitCount() noexcept {
+  return 8 * sizeof(T);
+}
+
 constexpr bool isinf(auto num) noexcept { return std::isinf(num); }
 
 constexpr bool isnan(auto num) noexcept { return std::isnan(num); }
