@@ -1,6 +1,7 @@
 #ifndef MATH_MATH_H_
 #define MATH_MATH_H_
 
+#include <bit>
 #include <cassert>
 #include <cmath>
 #include <concepts>
@@ -34,7 +35,6 @@ concept HasArithmeticOp = requires(T a, T b) {
   a + b;
   a - b;
   a *b;
-  a / b;
 };
 
 template <typename T>
@@ -54,8 +54,7 @@ struct same_size_integral {
                                                 int64_t, void>>>>;
 };
 
-template <FloatingPoint T>
-  requires std::is_arithmetic_v<T>
+template <Arithmetic T>
 struct same_size_float {
   using type = std::conditional_t<
       sizeof(T) <= sizeof(float), float,
