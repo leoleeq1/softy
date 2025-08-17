@@ -1,232 +1,140 @@
 #ifndef CORE_PROPERTY_H_
 #define CORE_PROPERTY_H_
 
+#include <cassert>
 #include <functional>
+
+#include "math/math.h"
 
 namespace softy {
 template <typename T>
 class Property {
-  using Getter = std::function<T(const T&)>;
+  using Getter = std::function<T(void)>;
   using Setter = std::function<void(const T&)>;
 
  public:
-  Property() = default;
-  Property(const T& value, Getter getter = nullptr, Setter setter = nullptr);
-  Property(const Property<T>& rhs);
-  Property<T>& operator=(const Property<T>& rhs);
+  constexpr Property(Getter getter);
+  constexpr Property(Getter getter, Setter setter);
+  constexpr Property(const Property&) = delete;
+  constexpr Property& operator=(const Property&) = delete;
 
-  void SetGetter(Getter getter);
-  void SetSetter(Setter setter);
-  void SetProperty(Getter getter, Setter setter);
-  void SetValueWithoutNotify(const T& value);
+  constexpr void SetProperty(Getter getter, Setter setter);
 
-  Property<T> operator+(const T& value) const;
-  Property<T> operator-(const T& value) const;
-  Property<T> operator*(const T& value) const;
-  Property<T> operator/(const T& value) const;
-  Property<T> operator%(const T& value) const;
-  Property<T>& operator=(const T& value);
-  Property<T>& operator+=(const T& value);
-  Property<T>& operator-=(const T& value);
-  Property<T>& operator*=(const T& value);
-  Property<T>& operator/=(const T& value);
-  Property<T> operator+() const;
-  Property<T> operator-() const;
-  Property<T>& operator++();
-  Property<T> operator++(int);
-  Property<T>& operator--();
-  Property<T> operator--(int);
-  bool operator!() const;
-  auto operator<=>(const T& value) const;
-  auto operator<=>(const Property& rhs) const;
-  operator T() const;
+  constexpr T Get() const;
+  constexpr void Set(const T& value) const;
+
+  constexpr void operator=(const T& v) const;
+  constexpr auto operator<=>(const Property& rhs) const;
+  constexpr operator T() const;
 
  private:
   Getter getter_{};
   Setter setter_{};
-  T value_{};
 };
 
 template <typename T>
-inline Property<T>::Property(const T& value, Getter getter, Setter setter)
-    : value_{value}, getter_{getter}, setter_{setter} {}
-
-template <typename T>
-inline Property<T>::Property(const Property& rhs)
-    : value_{rhs.value_}, getter_{rhs.getter_}, setter_{rhs.setter_} {}
-
-template <typename T>
-inline Property<T>& Property<T>::operator=(const Property<T>& rhs) {
-  value_ = rhs.value_;
-  getter_ = rhs.getter_;
-  setter_ = rhs.setter_;
+constexpr Property<T>::Property(Getter getter) : getter_{getter} {
+  assert(getter != nullptr);
 }
 
 template <typename T>
-inline void Property<T>::SetGetter(Getter getter) {
-  getter_ = getter;
+constexpr Property<T>::Property(Getter getter, Setter setter)
+    : getter_{getter}, setter_{setter} {
+  assert(getter != nullptr);
 }
 
 template <typename T>
-inline void Property<T>::SetSetter(Setter setter) {
-  setter_ = setter;
-}
-
-template <typename T>
-inline void Property<T>::SetProperty(Getter getter, Setter setter) {
+constexpr void Property<T>::SetProperty(Getter getter, Setter setter) {
+  assert(getter != nullptr);
   getter_ = getter;
   setter_ = setter;
 }
 
 template <typename T>
-inline void Property<T>::SetValueWithoutNotify(const T& value) {
-  value_ = value;
+constexpr T Property<T>::Get() const {
+  assert(getter_ != nullptr);
+  return getter_();
 }
 
 template <typename T>
-inline Property<T> Property<T>::operator+(const T& value) const {
-  return Property<T>{value_ + value, getter_, setter_};
+constexpr void Property<T>::Set(const T& value) const {
+  assert(setter_ != nullptr);
+  setter_(value);
 }
 
 template <typename T>
-inline Property<T> Property<T>::operator-(const T& value) const {
-  return Property<T>{value_ - value, getter_, setter_};
+constexpr void Property<T>::operator=(const T& v) const {
+  setter_(v);
 }
 
 template <typename T>
-inline Property<T> Property<T>::operator*(const T& value) const {
-  return Property<T>{value_ * value, getter_, setter_};
+constexpr auto Property<T>::operator<=>(const Property& rhs) const {
+  return getter_() <=> rhs.getter_();
 }
 
 template <typename T>
-inline Property<T> Property<T>::operator/(const T& value) const {
-  return Property<T>{value_ / value, getter_, setter_};
+constexpr Property<T>::operator T() const {
+  return getter_();
+}
+
+template <HasArithmeticOp T>
+constexpr T operator+(const T& lhs, const Property<T>& rhs) {
+  return lhs + T(rhs);
+}
+
+template <HasArithmeticOp T>
+constexpr T operator+(const Property<T>& lhs, const T& rhs) {
+  return T(lhs) + rhs;
+}
+
+template <HasArithmeticOp T>
+constexpr T operator-(const T& lhs, const Property<T>& rhs) {
+  return lhs - T(rhs);
+}
+
+template <HasArithmeticOp T>
+constexpr T operator-(const Property<T>& lhs, const T& rhs) {
+  return T(lhs) - rhs;
+}
+
+template <HasArithmeticOp T>
+constexpr T operator*(const T& lhs, const Property<T>& rhs) {
+  return lhs * T(rhs);
+}
+
+template <HasArithmeticOp T>
+constexpr T operator*(const Property<T>& lhs, const T& rhs) {
+  return T(lhs) * rhs;
+}
+
+template <HasDivisionOp T>
+constexpr T operator/(const T& lhs, const Property<T>& rhs) {
+  return lhs / T(rhs);
+}
+
+template <HasDivisionOp T>
+constexpr T operator/(const Property<T>& lhs, const T& rhs) {
+  return T(lhs) / rhs;
+}
+
+template <HasModuloOp T>
+constexpr T operator%(const T& lhs, const Property<T>& rhs) {
+  return lhs % T(rhs);
+}
+
+template <HasModuloOp T>
+constexpr T operator%(const Property<T>& lhs, const T& rhs) {
+  return T(lhs) % rhs;
 }
 
 template <typename T>
-inline Property<T> Property<T>::operator%(const T& value) const {
-  return Property<T>{value_ % value, getter_, setter_};
+constexpr auto operator<=>(const T& lhs, const Property<T>& rhs) {
+  return lhs <=> T(rhs);
 }
 
 template <typename T>
-inline Property<T>& Property<T>::operator=(const T& value) {
-  value_ = value;
-  if (setter_ != nullptr) {
-    setter_(value_);
-  }
-  return *this;
-}
-
-template <typename T>
-inline Property<T>& Property<T>::operator+=(const T& value) {
-  value_ += value;
-  if (setter_ != nullptr) {
-    setter_(value_);
-  }
-  return *this;
-}
-
-template <typename T>
-inline Property<T>& Property<T>::operator-=(const T& value) {
-  value_ -= value;
-  if (setter_ != nullptr) {
-    setter_(value_);
-  }
-  return *this;
-}
-
-template <typename T>
-inline Property<T>& Property<T>::operator*=(const T& value) {
-  value_ *= value;
-  if (setter_ != nullptr) {
-    setter_(value_);
-  }
-  return *this;
-}
-
-template <typename T>
-inline Property<T>& Property<T>::operator/=(const T& value) {
-  value_ /= value;
-  if (setter_ != nullptr) {
-    setter_(value_);
-  }
-  return *this;
-}
-
-template <typename T>
-inline Property<T> Property<T>::operator+() const {
-  return Property<T>{+value_, getter_, setter_};
-}
-
-template <typename T>
-inline Property<T> Property<T>::operator-() const {
-  return Property<T>{-value_, getter_, setter_};
-}
-
-template <typename T>
-inline Property<T>& Property<T>::operator++() {
-  ++value_;
-  if (setter_ != nullptr) {
-    setter_(value_);
-  }
-  return *this;
-}
-
-template <typename T>
-inline Property<T> Property<T>::operator++(int) {
-  T temp{value_};
-  ++value_;
-  if (setter_ != nullptr) {
-    setter_(value_);
-  }
-  return Property<T>{temp, getter_, setter_};
-}
-
-template <typename T>
-inline Property<T>& Property<T>::operator--() {
-  --value_;
-  if (setter_ != nullptr) {
-    setter_(value_);
-  }
-  return *this;
-}
-
-template <typename T>
-inline Property<T> Property<T>::operator--(int) {
-  T temp{value_};
-  --value_;
-  if (setter_ != nullptr) {
-    setter_(value_);
-  }
-  return Property<T>{temp, getter_, setter_};
-}
-
-template <typename T>
-inline bool Property<T>::operator!() const {
-  return !value_;
-}
-
-template <typename T>
-inline auto Property<T>::operator<=>(const T& value) const {
-  return value_ <=> value;
-}
-
-template <typename T>
-inline auto operator<=>(const T& value, const Property<T>& prop) {
-  return value <=> prop;
-}
-
-template <typename T>
-inline auto Property<T>::operator<=>(const Property& rhs) const {
-  return value_ <=> rhs.value_;
-}
-
-template <typename T>
-inline Property<T>::operator T() const {
-  if (getter_ != nullptr) {
-    return getter_(value_);
-  }
-  return value_;
+constexpr auto operator<=>(const Property<T>& lhs, const T& rhs) {
+  return T(lhs) <=> rhs;
 }
 }  // namespace softy
 
