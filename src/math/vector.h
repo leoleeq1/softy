@@ -17,12 +17,38 @@ template <Arithmetic T, std::size_t N>
 struct vec {
   constexpr vec() : v{} {}
   constexpr vec(const vec& rhs) : v{rhs.v} {}
+  constexpr vec& operator=(const vec& rhs) {
+    v = rhs.v;
+    return *this;
+  }
+
+  template <Arithmetic U, std::size_t M, typename... Args>
+    requires(sizeof...(Args) > 0)
+  explicit constexpr vec(const vec<U, M>& rhs, Args... args) {
+    static_assert(M + sizeof...(Args) <= N, "Invalid number of arguments!");
+    for (std::size_t i = 0; i < M; ++i) {
+      v[i] = static_cast<T>(rhs.v[i]);
+    }
+
+    std::size_t index = 0;
+    ((v[M + index++] = static_cast<T>(args)), ...);
+  }
 
   template <typename... U>
   explicit constexpr vec(U... args)
     requires(sizeof...(U) <= N &&
              (std::is_arithmetic_v<std::decay_t<U>> && ...))
       : v{static_cast<T>(args)...} {}
+
+  template <Arithmetic U, std::size_t M>
+  constexpr operator vec<U, M>() {
+    vec<U, M> vec{};
+    constexpr std::size_t n = std::min(N, M);
+    for (std::size_t i = 0; i < n; ++i) {
+      vec.v[i] = static_cast<U>(v[i]);
+    }
+    return vec;
+  }
 
   constexpr T operator[](std::size_t i) const {
     assert(i < N);
@@ -65,12 +91,38 @@ template <Arithmetic T>
 struct alignas(alignof(T) * 4) vec<T, 4> {
   constexpr vec() : v{} {}
   constexpr vec(const vec& rhs) : v{rhs.v} {}
+  constexpr vec& operator=(const vec& rhs) {
+    v = rhs.v;
+    return *this;
+  }
+
+  template <Arithmetic U, std::size_t M, typename... Args>
+    requires(sizeof...(Args) > 0)
+  explicit constexpr vec(const vec<U, M>& rhs, Args... args) {
+    static_assert(M + sizeof...(Args) <= 4, "Invalid number of arguments!");
+    for (std::size_t i = 0; i < M; ++i) {
+      v[i] = static_cast<T>(rhs.v[i]);
+    }
+
+    std::size_t index = 0;
+    ((v[M + index++] = static_cast<T>(args)), ...);
+  }
 
   template <typename... U>
   explicit constexpr vec(U... args)
     requires(sizeof...(U) <= 4 &&
              (std::is_arithmetic_v<std::decay_t<U>> && ...))
       : v{static_cast<T>(args)...} {}
+
+  template <Arithmetic U, std::size_t M>
+  constexpr operator vec<U, M>() {
+    vec<U, M> vec{};
+    constexpr std::size_t n = std::min(4uz, M);
+    for (std::size_t i = 0; i < n; ++i) {
+      vec.v[i] = static_cast<U>(v[i]);
+    }
+    return vec;
+  }
 
   constexpr T operator[](std::size_t i) const {
     assert(i < 4);
@@ -119,12 +171,7 @@ using v4i = vec<int32_t, 4>;
 
 template <Integral T, std::size_t N>
 constexpr bool operator==(vec<T, N> lhs, vec<T, N> rhs) {
-  for (std::size_t i = 0; i < N; ++i) {
-    if (lhs[i] != rhs[i]) {
-      return false;
-    }
-  }
-  return true;
+  return lhs.v == rhs.v;
 }
 
 template <Integral T, std::size_t N>
@@ -174,6 +221,14 @@ template <Arithmetic T, std::size_t N>
 constexpr vec<T, N>& operator-=(vec<T, N>& lhs, vec<T, N> rhs) {
   for (std::size_t i = 0; i < N; ++i) {
     lhs[i] -= rhs[i];
+  }
+  return lhs;
+}
+
+template <Arithmetic T, std::size_t N, Arithmetic U>
+constexpr vec<T, N>& operator*=(vec<T, N>& lhs, U rhs) {
+  for (std::size_t i = 0; i < N; ++i) {
+    lhs[i] *= static_cast<T>(rhs);
   }
   return lhs;
 }
@@ -282,6 +337,46 @@ constexpr vec<same_size_float_t<T>, N> normalize(vec<T, N> v) {
   auto l = length(v);
   if (isNearlyZero(l)) return vec<same_size_float_t<T>, N>{};
   return vec<same_size_float_t<T>, N>(v) / l;
+}
+
+template <Arithmetic T, std::size_t N>
+constexpr same_size_float_t<T> fraction(vec<T, N> v0, vec<T, N> v1,
+                                        vec<T, N> p) {
+  vec<T, N> u = v1 - v0;
+  vec<T, N> v = p - v0;
+
+  same_size_float_t<T> denom = dot(u, u);
+  return dot(v, v) / denom;
+}
+
+template <Arithmetic T>
+constexpr vec<same_size_float_t<T>, 3> barycentricCoordinate(vec<T, 3> v0,
+                                                             vec<T, 3> v1,
+                                                             vec<T, 3> p) {
+  vec<T, 3> out{};
+  vec<T, 3> u = v1 - v0;
+  vec<T, 3> v = p - v0;
+
+  same_size_float_t<T> denom = dot(u, u);
+  out[1] = dot(v, v) / denom;
+  out[0] = static_cast<same_size_float_t<T>>(1) - out[1];
+}
+
+template <Arithmetic T>
+constexpr vec<same_size_float_t<T>, 3> barycentricCoordinate(vec<T, 3> v0,
+                                                             vec<T, 3> v1,
+                                                             vec<T, 3> v2,
+                                                             vec<T, 3> p) {
+  vec<T, 3> out{};
+  vec<T, 3> u = v1 - v0;
+  vec<T, 3> v = v2 - v0;
+  vec<T, 3> w = p - v0;
+
+  same_size_float_t<T> denom =
+      (dot(u, u) * dot(v, v) - (dot(u, v) * dot(v, u)));
+  out[1] = (dot(w, u) * dot(v, v) - dot(w, v) * dot(v, u)) / denom;
+  out[2] = (dot(w, v) * dot(u, u) - dot(w, u) * dot(u, v)) / denom;
+  out[0] = static_cast<same_size_float_t<T>>(1) - out[1] - out[2];
 }
 }  // namespace softy
 
