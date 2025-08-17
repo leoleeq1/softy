@@ -17,6 +17,10 @@ template <FloatingPoint T, std::size_t N>
 struct mat {
   constexpr mat() : m{} {}
   constexpr mat(const mat& m) : m{m.m} {}
+  constexpr mat& operator=(const mat& rhs) {
+    m = rhs.m;
+    return *this;
+  }
 
   constexpr explicit mat(std::initializer_list<vec<T, N>> list) : m{} {
     assert(list.size() <= N);
@@ -45,7 +49,7 @@ struct mat {
     ((m[i / N][i % N] = static_cast<T>(args), ++i), ...);
   }
 
-  vec<T, N>& operator[](std::size_t row) {
+  constexpr vec<T, N>& operator[](std::size_t row) {
     assert(row < N);
     return m[row];
   }
@@ -65,6 +69,10 @@ template <FloatingPoint T>
 struct alignas(alignof(T) * 4) mat<T, 4> {
   constexpr mat() : m{} {}
   constexpr mat(const mat& m) : m{m.m} {}
+  constexpr mat& operator=(const mat& rhs) {
+    m = rhs.m;
+    return *this;
+  }
 
   constexpr explicit mat(std::initializer_list<vec<T, 4>> list) : m{} {
     assert(list.size() <= 4);
@@ -93,7 +101,7 @@ struct alignas(alignof(T) * 4) mat<T, 4> {
     ((m[i / 4][i % 4] = static_cast<T>(args), ++i), ...);
   }
 
-  vec<T, 4>& operator[](std::size_t row) {
+  constexpr vec<T, 4>& operator[](std::size_t row) {
     assert(row < 4);
     return m[row];
   }
@@ -109,7 +117,23 @@ struct alignas(alignof(T) * 4) mat<T, 4> {
   std::array<vec<T, 4>, 4> m{};
 };
 
+using mat2 = mat<float, 2>;
+using mat3 = mat<float, 3>;
 using mat4 = mat<float, 4>;
+
+template <FloatingPoint T, std::size_t N>
+constexpr bool equals(mat<T, N> lhs, mat<T, N> rhs,
+                      T epsilon = std::numeric_limits<T>::epsilon(),
+                      int32_t maxUlpDiff = 4) {
+  assert(maxUlpDiff > 0 && maxUlpDiff <= 4);
+  for (std::size_t i = 0; i < N; ++i) {
+    if (!equals(lhs[i], rhs[i], epsilon, maxUlpDiff)) {
+      return false;
+    }
+  }
+
+  return true;
+}
 
 template <FloatingPoint T, std::size_t N>
 constexpr mat<T, N> Transpose(mat<T, N> m) {
@@ -161,6 +185,22 @@ constexpr vec<T, N> operator*(vec<T, N> lhs, mat<T, N> rhs) {
     v[r] = dot(lhs, rhs[r]);
   }
   return v;
+}
+
+template <typename T, std::size_t N>
+constexpr mat<T, N> operator*(mat<T, N> lhs, Arithmetic auto rhs) {
+  for (std::size_t r = 0; r < N; ++r) {
+    lhs[r] *= rhs;
+  }
+  return lhs;
+}
+
+template <typename T, std::size_t N>
+constexpr mat<T, N> operator*(Arithmetic auto lhs, mat<T, N> rhs) {
+  for (std::size_t r = 0; r < N; ++r) {
+    rhs[r] = lhs * rhs[r];
+  }
+  return rhs;
 }
 
 template <typename T, std::size_t N>
