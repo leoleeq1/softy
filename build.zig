@@ -2,7 +2,10 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
-    const mode = b.standardOptimizeOption(.{ .preferred_optimize_mode = .ReleaseFast });
+    // const mode = b.standardOptimizeOption(.{
+    //     .preferred_optimize_mode = .ReleaseFast,
+    // });
+    const mode: std.builtin.OptimizeMode = .ReleaseFast;
 
     const flags: [18][]const u8 = .{
         "-std=c++23",
@@ -32,6 +35,11 @@ pub fn build(b: *std.Build) void {
     exe.addCSourceFiles(.{
         .files = &.{
             "src/main.cpp",
+            "src/core/transform.cpp",
+            "src/render/buffer.cpp",
+            "src/render/forward_render_pipeline.cpp",
+            "src/render/rasterizer.cpp",
+            "src/shader/shader.cpp",
         },
         .flags = &flags,
         .language = .cpp,
@@ -53,7 +61,6 @@ pub fn build(b: *std.Build) void {
         .macos => {},
         else => |os_tag| std.debug.print("Unsupported OS: {s}", .{@tagName(os_tag)}),
     }
-
     exe.linkLibCpp();
 
     b.installArtifact(exe);
@@ -63,4 +70,35 @@ pub fn build(b: *std.Build) void {
 
     const run_step = b.step("run", "Run the app");
     run_step.dependOn(&run_cmd.step);
+
+    const tester = b.addExecutable(.{
+        .name = "tester",
+        .target = target,
+        .optimize = mode,
+    });
+    tester.addCSourceFiles(.{
+        .files = &.{
+            "tests/tester.cpp",
+        },
+        .flags = &flags,
+        .language = .cpp,
+    });
+    tester.addIncludePath(b.path("src"));
+    tester.addIncludePath(b.path("tests"));
+
+    switch (target.result.os.tag) {
+        .windows => {},
+        .linux => {},
+        .macos => {},
+        else => |os_tag| std.debug.print("Unsupported OS: {s}", .{@tagName(os_tag)}),
+    }
+    tester.linkLibCpp();
+
+    b.installArtifact(tester);
+
+    const tester_run_cmd = b.addRunArtifact(tester);
+    tester_run_cmd.step.dependOn(b.getInstallStep());
+
+    const tester_run_step = b.step("test", "Test the app");
+    tester_run_step.dependOn(&tester_run_cmd.step);
 }
