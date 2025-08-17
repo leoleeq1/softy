@@ -1,6 +1,7 @@
 #ifndef MATH_MATH_H_
 #define MATH_MATH_H_
 
+#include <algorithm>
 #include <bit>
 #include <cassert>
 #include <cmath>
@@ -36,6 +37,12 @@ concept HasArithmeticOp = requires(T a, T b) {
   a - b;
   a *b;
 };
+
+template <typename T>
+concept HasDivisionOp = requires(T a, T b) { a / b; };
+
+template <typename T>
+concept HasModuloOp = requires(T a, T b) { a % b; };
 
 template <typename T>
 concept Integral = std::is_integral_v<T>;
@@ -128,6 +135,25 @@ constexpr HasArithmeticOp auto lerp(HasArithmeticOp auto a,
                                     HasArithmeticOp auto b,
                                     HasArithmeticOp auto t) noexcept {
   return a + t * (b - a);
+}
+
+constexpr auto clamp(Arithmetic auto v, Arithmetic auto min,
+                     Arithmetic auto max) noexcept {
+  return std::clamp(v, min, max);
+}
+
+constexpr auto clamp(auto v, auto min, auto max) noexcept {
+  return v > max ? max : v < min ? min : v;
+}
+
+constexpr auto clampDegree360(Arithmetic auto degree) {
+  using T = decltype(degree);
+  T _360{static_cast<T>(360)};
+  T value = fmod(degree, _360);
+  if (value < static_cast<T>(0)) {
+    value += _360;
+  }
+  return value;
 }
 
 constexpr auto sin(auto rad) noexcept {
