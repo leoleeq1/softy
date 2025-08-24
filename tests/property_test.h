@@ -6,14 +6,6 @@
 #include "core/property.h"
 #include "unit_test.h"
 
-TEST(Property, TestCopyConstructor) {
-  int32_t p = 1;
-  softy::Property<int32_t> prop{[&]() { return p; }, [&](int32_t v) { p = v; }};
-  int32_t expected = 1;
-  int32_t actual = prop;
-  ASSERT_EQ(expected, actual);
-}
-
 TEST(Property, TestGetter) {
   int32_t p = 1;
   softy::Property<int32_t> prop{[&]() { return p; }};
@@ -25,7 +17,8 @@ TEST(Property, TestGetter) {
 TEST(Property, TestSetter) {
   int32_t expected = 2;
   int32_t actual = 0;
-  softy::Property<int32_t> prop{nullptr, [&](auto& v) { return actual = v; }};
+  softy::Property<int32_t> prop{[&]() { return actual; },
+                                [&](auto& v) { return actual = v; }};
   prop = 2;
   ASSERT_EQ(expected, actual);
 }
