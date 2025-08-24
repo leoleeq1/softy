@@ -22,6 +22,14 @@ struct vec {
     return *this;
   }
 
+  template <Arithmetic U, std::size_t M>
+  constexpr vec(const vec<U, M>& rhs) {
+    static_assert(M <= N, "Invalid number of arguments!");
+    for (std::size_t i = 0; i < M; ++i) {
+      v[i] = static_cast<T>(rhs.v[i]);
+    }
+  }
+
   template <Arithmetic U, std::size_t M, typename... Args>
     requires(sizeof...(Args) > 0)
   explicit constexpr vec(const vec<U, M>& rhs, Args... args) {
@@ -94,6 +102,14 @@ struct alignas(alignof(T) * 4) vec<T, 4> {
   constexpr vec& operator=(const vec& rhs) {
     v = rhs.v;
     return *this;
+  }
+
+  template <Arithmetic U, std::size_t M>
+  constexpr vec(const vec<U, M>& rhs) {
+    static_assert(M <= 4, "Invalid number of arguments!");
+    for (std::size_t i = 0; i < M; ++i) {
+      v[i] = static_cast<T>(rhs.v[i]);
+    }
   }
 
   template <Arithmetic U, std::size_t M, typename... Args>
