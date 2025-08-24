@@ -2,10 +2,8 @@ const std = @import("std");
 
 pub fn build(b: *std.Build) void {
     const target = b.standardTargetOptions(.{});
-    // const mode = b.standardOptimizeOption(.{
-    //     .preferred_optimize_mode = .ReleaseFast,
-    // });
-    const mode: std.builtin.OptimizeMode = .ReleaseFast;
+    const mode = b.standardOptimizeOption(.{});
+    // const mode: std.builtin.OptimizeMode = .Debug;
 
     const flags: [18][]const u8 = .{
         "-std=c++23",
@@ -37,7 +35,9 @@ pub fn build(b: *std.Build) void {
             "src/main.cpp",
             "src/core/transform.cpp",
             "src/render/buffer.cpp",
+            "src/render/camera.cpp",
             "src/render/forward_render_pipeline.cpp",
+            "src/render/mesh.cpp",
             "src/render/rasterizer.cpp",
             "src/shader/shader.cpp",
         },
