@@ -1,5 +1,6 @@
 #include "event/event_channel.h"
 #include "event/window_event.h"
+#include "render/buffer.h"
 #include "render/color.h"
 #include "window/window.h"
 
@@ -7,7 +8,6 @@
 #include <Windows.h>
 
 #include <memory>
-#include <vector>
 
 namespace softy {
 struct Window::Impl {
@@ -17,7 +17,7 @@ struct Window::Impl {
 
   WindowDescriptor& descriptor;
   EventChannel& channel;
-  std::vector<Color>& pixels;
+  Buffer& colorBuffer;
   HWND hwnd;
 };
 
@@ -29,8 +29,8 @@ Window::~Window() {
 }
 
 bool Window::Create(WindowDescriptor& descriptor, EventChannel& channel,
-                    std::vector<Color>& pixels) {
-  impl_ = std::make_unique<Impl>(descriptor, channel, pixels);
+                    Buffer& colorBuffer) {
+  impl_ = std::make_unique<Impl>(descriptor, channel, colorBuffer);
 
   const WNDCLASSEXA wc{
       .cbSize = sizeof(WNDCLASSEXA),
@@ -131,7 +131,7 @@ LRESULT Window::Impl::s_WndProc(HWND hwnd, uint32_t msg, WPARAM wparam,
       SetDIBitsToDevice(memdc, 0, 0, static_cast<DWORD>(impl->descriptor.width),
                         static_cast<DWORD>(impl->descriptor.height), 0, 0, 0,
                         static_cast<UINT>(impl->descriptor.height),
-                        impl->pixels.data(), &bmi, DIB_RGB_COLORS);
+                        impl->colorBuffer.Get(), &bmi, DIB_RGB_COLORS);
       BitBlt(hdc, 0, 0, impl->descriptor.width, impl->descriptor.height, memdc,
              0, 0, SRCCOPY);
       SelectObject(memdc, oldBitmap);

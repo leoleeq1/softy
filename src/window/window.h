@@ -8,7 +8,7 @@
 #include <vector>
 
 #include "event/event_channel.h"
-#include "render/color.h"
+#include "render/buffer.h"
 
 namespace softy {
 struct WindowDescriptor {
@@ -27,7 +27,7 @@ class Window {
   Window& operator=(Window&&) = delete;
 
   bool Create(WindowDescriptor& descriptor, EventChannel& eventChannel,
-              std::vector<Color>& pixels);
+              Buffer& colorBuffer);
   bool Update();
   void Present();
   void SetTitle(std::string_view title);
