@@ -17,3 +17,9 @@ The whole program will be written in C++, but I'll use zig as a build system.
   - [ ] Windows
   - [ ] Linux
   - [ ] macOS
+
+## How to Build
+
+1. Install zig
+2. Run command `zig build run`
+3. Test command `zig build test`
