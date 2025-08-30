@@ -9,13 +9,13 @@
 #include "render/vertex.h"
 
 namespace softy {
-using VertexShader = std::function<std::vector<VertexOutput>(
-    const ConstantBuffer&, const std::vector<Vertex>&)>;
+using VertexShader =
+    std::function<VertexOutput(const ConstantBuffer&, const Vertex&)>;
 using FragmentShader =
     std::function<Color(const ConstantBuffer&, const VertexOutput&)>;
 
-std::vector<VertexOutput> DefaultVertexShader(
-    const ConstantBuffer& cb, const std::vector<Vertex>& vertices);
+VertexOutput DefaultVertexShader(const ConstantBuffer& cb,
+                                 const Vertex& vertex);
 
 class Shader {
  public:

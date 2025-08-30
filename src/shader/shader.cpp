@@ -3,18 +3,14 @@
 #include <any>
 
 namespace softy {
-std::vector<VertexOutput> softy::DefaultVertexShader(
-    const ConstantBuffer& cb, const std::vector<Vertex>& vertices) {
-  std::vector<VertexOutput> outputs(vertices.size());
+VertexOutput softy::DefaultVertexShader(const ConstantBuffer& cb,
+                                        const Vertex& vertex) {
+  VertexOutput output;
 
-  for (std::size_t i = 0; i < vertices.size(); ++i) {
-    VertexOutput out{};
-    out.position = vertices[i].position * cb.GetWorldMatrix() *
-                   cb.GetViewMatrix() * cb.GetProjectionMatrix();
-    outputs[i] = out;
-  }
+  output.position = vertex.position * cb.GetWorldMatrix() * cb.GetViewMatrix() *
+                    cb.GetProjectionMatrix();
 
-  return outputs;
+  return output;
 }
 
 Color UnlitColorFragmentShader(const ConstantBuffer& cb, const VertexOutput&) {
