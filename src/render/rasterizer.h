@@ -13,8 +13,9 @@
 #include "shader/shader.h"
 
 namespace softy {
-void Rasterize(ColorBuffer& renderTarget, std::vector<VertexOutput>& inputs,
-               std::vector<int>& indices, FragmentShader fs);
+void Rasterize(ColorBuffer& renderTarget,
+               const std::vector<VertexOutput>& vsOutputs,
+               const std::vector<int>& indices, FragmentShader fs);
 }  // namespace softy
 
 #endif  // RENDER_RASTERIZER_H_

@@ -169,14 +169,18 @@ std::vector<VertexOutput> HomogeneousClipping(
   return outputs;
 }
 
-void Rasterize(ColorBuffer& renderTarget, std::vector<VertexOutput>& inputs,
-               std::vector<int>& indices, FragmentShader fs) {
+void Rasterize(ColorBuffer& renderTarget,
+               const std::vector<VertexOutput>& vsOutputs,
+               const std::vector<int>& indices, FragmentShader fs) {
   std::vector<VertexOutput> culled;
 
   for (std::size_t i = 0; i < indices.size(); i += 3) {
-    const VertexOutput& v0 = inputs[static_cast<std::size_t>(indices[i + 0])];
-    const VertexOutput& v1 = inputs[static_cast<std::size_t>(indices[i + 1])];
-    const VertexOutput& v2 = inputs[static_cast<std::size_t>(indices[i + 2])];
+    const VertexOutput& v0 =
+        vsOutputs[static_cast<std::size_t>(indices[i + 0])];
+    const VertexOutput& v1 =
+        vsOutputs[static_cast<std::size_t>(indices[i + 1])];
+    const VertexOutput& v2 =
+        vsOutputs[static_cast<std::size_t>(indices[i + 2])];
 
     if (FrustumCulling(v0, v1, v2)) {
       continue;
