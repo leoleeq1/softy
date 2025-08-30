@@ -2,7 +2,6 @@
 
 #include <algorithm>
 #include <cassert>
-#include <print>
 
 #include "math/math.h"
 #include "math/matrix.h"
