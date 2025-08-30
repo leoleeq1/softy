@@ -133,10 +133,13 @@ void Transform::LookAt(v3f target, bool inverse) noexcept {
   v3f up{cross(right, forward)};
 
   v3f rotation{};
-  rotation[0] = clampDegree360(numbers::fRad2Deg * asin(-forward[1]));
+  rotation[0] =
+      clampDegree360(numbers::fRad2Deg * asin(clamp(-forward[1], -1.0f, 1.0f)));
   float cp = cos(numbers::fDeg2Rad * rotation[0]);
-  rotation[1] = clampDegree360(numbers::fRad2Deg * acos(forward[2] / cp));
-  rotation[2] = clampDegree360(numbers::fRad2Deg * asin(right[1] / cp));
+  rotation[1] = clampDegree360(numbers::fRad2Deg *
+                               acos(clamp(forward[2] / cp, -1.0f, 1.0f)));
+  rotation[2] = clampDegree360(numbers::fRad2Deg *
+                               asin(clamp(right[1] / cp, -1.0f, 1.0f)));
 
   this->rotation = rotation;
 }
