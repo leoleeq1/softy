@@ -60,7 +60,7 @@ int32_t main([[maybe_unused]] int32_t argc, [[maybe_unused]] char** argv) {
                        softy::Vertex(softy::v4f{+0.5f, +0.5f, -0.5f, 1.0f}),
                    },
                    std::array<std::size_t, 36>{
-                       0, 1, 2, 0, 2, 3, 0, 4, 7, 0, 7, 3, 1, 5, 4, 1, 4, 0,
+                       0, 2, 1, 0, 3, 2, 0, 4, 7, 0, 7, 3, 1, 5, 4, 1, 4, 0,
                        2, 6, 5, 2, 5, 1, 3, 7, 6, 3, 6, 2, 4, 5, 6, 4, 6, 7},
                    &material};
   softy::Transform cubeTransform{};
@@ -83,7 +83,7 @@ int32_t main([[maybe_unused]] int32_t argc, [[maybe_unused]] char** argv) {
     // cam.GetTransform().rotation += softy::v3f(0.0f, 60.0f * dt, 0.0f);
     cam.GetTransform().LookAt(softy::v3f{0.0f, 0.0f, 0.0f}, true);
     // cubeTransform.scale = softy::v3f::One() * 2.0f;
-    cubeTransform.rotation += softy::v3f(0.0f, 60.0f * dt, 0.0f);
+    cubeTransform.rotation += softy::v3f(0.0f, 60.0f * dt, 75.0f * dt);
 
     cb.SetData(softy::ConstantBufferData{
         .matWorld = softy::mat4::Identity(),
