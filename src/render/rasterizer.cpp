@@ -6,7 +6,6 @@
 #include "math/math.h"
 #include "math/matrix.h"
 #include "math/vector.h"
-#include "rasterizer.h"
 #include "render/buffer.h"
 #include "render/color.h"
 #include "render/material.h"

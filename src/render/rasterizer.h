@@ -4,11 +4,7 @@
 #include <functional>
 #include <vector>
 
-#include "math/matrix.h"
-#include "math/vector.h"
 #include "render/buffer.h"
-#include "render/color.h"
-#include "render/material.h"
 #include "render/vertex.h"
 #include "shader/shader.h"
 
