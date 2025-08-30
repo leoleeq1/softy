@@ -5,17 +5,24 @@
 #include <cstdint>
 #include <ranges>
 #include <span>
+#include <utility>
 #include <vector>
 
-#include "mesh.h"
+#include "render/material.h"
 #include "render/vertex.h"
 
 namespace softy {
 Mesh::Mesh(const std::vector<Vertex>& vertices,
-           const std::vector<int32_t>& indices)
-    : vb_{vertices}, ib_{indices} {}
+           const std::vector<int32_t>& indices, Material* material)
+    : vb_{vertices}, ib_{indices}, material_{material} {}
 
-Mesh::Mesh(std::span<const Vertex> vertices, std::span<const int32_t> indices) {
+Mesh::Mesh(std::vector<Vertex>&& vertices, std::vector<int32_t>& indices,
+           Material* material)
+    : vb_{std::move(vertices)}, ib_{std::move(indices)}, material_{material} {}
+
+Mesh::Mesh(std::span<const Vertex> vertices, std::span<const int32_t> indices,
+           Material* material)
+    : material_{material} {
   vb_.resize(vertices.size());
   ib_.resize(indices.size());
   std::ranges::copy(vertices, vb_.begin());
@@ -23,7 +30,8 @@ Mesh::Mesh(std::span<const Vertex> vertices, std::span<const int32_t> indices) {
 }
 
 Mesh::Mesh(std::span<const Vertex> vertices,
-           std::span<const std::size_t> indices) {
+           std::span<const std::size_t> indices, Material* material)
+    : material_{material} {
   vb_.resize(vertices.size());
   ib_.resize(indices.size());
   std::ranges::copy(vertices, vb_.begin());

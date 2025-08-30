@@ -6,23 +6,30 @@
 #include <span>
 #include <vector>
 
+#include "render/material.h"
 #include "render/vertex.h"
 
 namespace softy {
 class Mesh {
  public:
   Mesh() = default;
-  Mesh(const std::vector<Vertex>& vertices,
-       const std::vector<int32_t>& indices);
-  Mesh(std::span<const Vertex> vertices, std::span<const int32_t> indices);
-  Mesh(std::span<const Vertex> vertices, std::span<const std::size_t> indices);
+  Mesh(const std::vector<Vertex>& vertices, const std::vector<int32_t>& indices,
+       Material* material);
+  Mesh(std::vector<Vertex>&& vertices, std::vector<int32_t>& indices,
+       Material* material);
+  Mesh(std::span<const Vertex> vertices, std::span<const int32_t> indices,
+       Material* material);
+  Mesh(std::span<const Vertex> vertices, std::span<const std::size_t> indices,
+       Material* material);
 
-  const std::vector<Vertex>& GetVertexBuffer() const noexcept { return vb_; }
-  const std::vector<int32_t>& GetIndexBuffer() const noexcept { return ib_; }
+  const std::vector<Vertex>& GetVertices() const noexcept { return vb_; }
+  const std::vector<int32_t>& GetIndices() const noexcept { return ib_; }
+  const Material* GetMaterial() const noexcept { return material_; }
 
  private:
   std::vector<Vertex> vb_;
   std::vector<int32_t> ib_;
+  Material* material_;
 };
 }  // namespace softy
 
