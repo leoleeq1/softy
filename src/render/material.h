@@ -12,7 +12,7 @@ class Material {
  public:
   Material(Shader* shader) : shader_{shader} {}
 
-  Shader* GetShader() const noexcept { return shader_; }
+  const Shader* GetShader() const noexcept { return shader_; }
   const std::unordered_map<std::string, std::any>* GetProperties() const {
     return &properties_;
   }
