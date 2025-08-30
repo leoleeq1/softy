@@ -1,12 +1,15 @@
 #include "render/forward_render_pipeline.h"
 
+#include <algorithm>
+#include <ranges>
+#include <utility>
 #include <vector>
 
-#include "forward_render_pipeline.h"
 #include "render/buffer.h"
 #include "render/camera.h"
 #include "render/color.h"
 #include "render/material.h"
+#include "render/mesh.h"
 #include "render/rasterizer.h"
 #include "shader/shader.h"
 
@@ -15,22 +18,23 @@ void ForwardRenderPipeline::Render(Camera* camera) {
   ConstantBuffer* cb = GetConstantBuffer();
   ColorBuffer* rt = camera->GetRenderTarget();
 
-  for (std::size_t i = 0; i < vertices_.size(); ++i) {
-    std::vector<Vertex>& vertices = vertices_[i];
-    std::vector<int32_t>& indices = indices_[i];
-    mat4 transform = transforms_[i];
-    const Material* material = materials_[i];
+  std::vector<VertexOutput> vsOutputs;
+
+  for (auto [mesh, transform] : std::views::zip(meshes_, transforms_)) {
+    vsOutputs.clear();
+
+    const std::vector<int32_t>& indices = mesh->GetIndices();
+    const Shader* shader = mesh->GetMaterial()->GetShader();
 
     cb->SetWorldMatrix(transform);
-    std::vector<VertexOutput> outputs =
-        material->GetShader()->GetVS()(*cb, vertices);
+    std::ranges::transform(
+        mesh->GetVertices(), std::back_inserter(vsOutputs),
+        [&](const Vertex& v) { return shader->GetVS()(*cb, v); });
 
-    Rasterize(*rt, outputs, indices, material->GetShader()->GetFS());
+    Rasterize(*rt, vsOutputs, indices, shader->GetFS());
   }
 
-  vertices_.clear();
-  indices_.clear();
+  meshes_.clear();
   transforms_.clear();
-  materials_.clear();
 }
 }  // namespace softy
