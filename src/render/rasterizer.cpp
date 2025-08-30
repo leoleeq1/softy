@@ -13,22 +13,20 @@
 #include "shader/shader.h"
 
 namespace softy {
-static bool FrustumCulling(const VertexOutput& v0, const VertexOutput& v1,
-                           const VertexOutput& v2) {
-  if (abs(v0.position[0]) > v0.position[3] &&
-      abs(v1.position[0]) > v1.position[3] &&
-      abs(v2.position[0]) > v2.position[3]) {
+static bool BackfaceCulling(v2f v0, v2f v1, v2f v2) {
+  return cross(v1 - v0, v2 - v0) < 0.0f;
+}
+
+static bool FrustumCulling(v4f v0, v4f v1, v4f v2) {
+  if (abs(v0[0]) > v0[3] && abs(v1[0]) > v1[3] && abs(v2[0]) > v2[3]) {
     return true;
   }
 
-  if (abs(v0.position[1]) > v0.position[3] &&
-      abs(v1.position[1]) > v1.position[3] &&
-      abs(v2.position[1]) > v2.position[3]) {
+  if (abs(v0[1]) > v0[3] && abs(v1[1]) > v1[3] && abs(v2[1]) > v2[3]) {
     return true;
   }
 
-  if (v0.position[2] > v0.position[3] && v1.position[2] > v1.position[3] &&
-      v2.position[2] > v2.position[3]) {
+  if (v0[2] > v0[3] && v1[2] > v1[3] && v2[2] > v2[3]) {
     return true;
   }
 
@@ -181,7 +179,7 @@ void Rasterize(ColorBuffer& renderTarget,
     const VertexOutput& v2 =
         vsOutputs[static_cast<std::size_t>(indices[i + 2])];
 
-    if (FrustumCulling(v0, v1, v2)) {
+    if (FrustumCulling(v0.position, v1.position, v2.position)) {
       continue;
     }
 
@@ -208,6 +206,10 @@ void Rasterize(ColorBuffer& renderTarget,
     VertexOutput& v0 = culled[i + 0];
     VertexOutput& v1 = culled[i + 1];
     VertexOutput& v2 = culled[i + 2];
+
+    if (BackfaceCulling(v0.position, v1.position, v2.position)) {
+      continue;
+    }
 
     renderTarget.DrawLine(v0.position, v1.position, Color::Red());
     renderTarget.DrawLine(v1.position, v2.position, Color::Red());
