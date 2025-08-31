@@ -27,8 +27,8 @@ int32_t main([[maybe_unused]] int32_t argc, [[maybe_unused]] char** argv) {
   softy::EventChannel channel{};
   softy::WindowDescriptor descriptor{
       .name = "softy",
-      .width = 800,
-      .height = 600,
+      .width = 360,
+      .height = 240,
   };
   softy::Window window{};
 
@@ -45,24 +45,34 @@ int32_t main([[maybe_unused]] int32_t argc, [[maybe_unused]] char** argv) {
   }
 
   softy::Shader unlitColorShader{softy::UnlitColorShader()};
-  softy::Color color{0xFFFF0000};
+  softy::Color color{0xFFFFFFFF};
   softy::Material material{&unlitColorShader};
   material.SetProperty("Color_", color);
 
-  softy::Mesh cube{std::array{
-                       softy::Vertex(softy::v4f{-0.5f, -0.5f, -0.5f, 1.0f}),
-                       softy::Vertex(softy::v4f{-0.5f, -0.5f, +0.5f, 1.0f}),
-                       softy::Vertex(softy::v4f{+0.5f, -0.5f, +0.5f, 1.0f}),
-                       softy::Vertex(softy::v4f{+0.5f, -0.5f, -0.5f, 1.0f}),
-                       softy::Vertex(softy::v4f{-0.5f, +0.5f, -0.5f, 1.0f}),
-                       softy::Vertex(softy::v4f{-0.5f, +0.5f, +0.5f, 1.0f}),
-                       softy::Vertex(softy::v4f{+0.5f, +0.5f, +0.5f, 1.0f}),
-                       softy::Vertex(softy::v4f{+0.5f, +0.5f, -0.5f, 1.0f}),
-                   },
-                   std::array<std::size_t, 36>{
-                       0, 2, 1, 0, 3, 2, 0, 4, 7, 0, 7, 3, 1, 5, 4, 1, 4, 0,
-                       2, 6, 5, 2, 5, 1, 3, 7, 6, 3, 6, 2, 4, 5, 6, 4, 6, 7},
-                   &material};
+  softy::Mesh cube{
+      std::array{
+          softy::Vertex(softy::v4f{-0.5f, -0.5f, -0.5f, 1.0f}, softy::v3f{},
+                        softy::v2f{}, softy::Color{0xFFFF0000}),
+          softy::Vertex(softy::v4f{-0.5f, -0.5f, +0.5f, 1.0f}, softy::v3f{},
+                        softy::v2f{}, softy::Color{0xFF00FF00}),
+          softy::Vertex(softy::v4f{+0.5f, -0.5f, +0.5f, 1.0f}, softy::v3f{},
+                        softy::v2f{}, softy::Color{0xFF0000FF}),
+          softy::Vertex(softy::v4f{+0.5f, -0.5f, -0.5f, 1.0f}, softy::v3f{},
+                        softy::v2f{}, softy::Color{0xFFFFFF00}),
+          softy::Vertex(softy::v4f{-0.5f, +0.5f, -0.5f, 1.0f}, softy::v3f{},
+                        softy::v2f{}, softy::Color{0xFF00FFFF}),
+          softy::Vertex(softy::v4f{-0.5f, +0.5f, +0.5f, 1.0f}, softy::v3f{},
+                        softy::v2f{}, softy::Color{0xFFFF00FF}),
+          softy::Vertex(softy::v4f{+0.5f, +0.5f, +0.5f, 1.0f}, softy::v3f{},
+                        softy::v2f{}, softy::Color{0xFFFF0FF0}),
+          softy::Vertex(softy::v4f{+0.5f, +0.5f, -0.5f, 1.0f}, softy::v3f{},
+                        softy::v2f{}, softy::Color{0xFF0FFFF0}),
+      },
+      // std::array<int32_t, 6>{0, 4, 7, 0, 7, 3},
+      std::array<std::size_t, 36>{0, 2, 1, 0, 3, 2, 0, 4, 7, 0, 7, 3,
+                                  1, 5, 4, 1, 4, 0, 2, 6, 5, 2, 5, 1,
+                                  3, 7, 6, 3, 6, 2, 4, 5, 6, 4, 6, 7},
+      &material};
   softy::Transform cubeTransform{};
 
   softy::Camera cam{&rt};
