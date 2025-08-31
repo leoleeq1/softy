@@ -27,11 +27,12 @@ void ForwardRenderPipeline::Render(Camera* camera) {
     const Shader* shader = mesh->GetMaterial()->GetShader();
 
     cb->SetWorldMatrix(transform);
+    cb->SetProperties(mesh->GetMaterial()->GetProperties());
     std::ranges::transform(
         mesh->GetVertices(), std::back_inserter(vsOutputs),
         [&](const Vertex& v) { return shader->GetVS()(*cb, v); });
 
-    Rasterize(*rt, vsOutputs, indices, shader->GetFS());
+    Rasterize(*cb, *rt, vsOutputs, indices, shader->GetFS());
   }
 
   meshes_.clear();
