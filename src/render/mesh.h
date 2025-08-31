@@ -14,17 +14,19 @@ class Mesh {
  public:
   Mesh() = default;
   Mesh(const std::vector<Vertex>& vertices, const std::vector<int32_t>& indices,
-       Material* material);
+       Material* material = nullptr);
   Mesh(std::vector<Vertex>&& vertices, std::vector<int32_t>& indices,
-       Material* material);
+       Material* material = nullptr);
   Mesh(std::span<const Vertex> vertices, std::span<const int32_t> indices,
-       Material* material);
+       Material* material = nullptr);
   Mesh(std::span<const Vertex> vertices, std::span<const std::size_t> indices,
-       Material* material);
+       Material* material = nullptr);
 
   const std::vector<Vertex>& GetVertices() const noexcept { return vb_; }
   const std::vector<int32_t>& GetIndices() const noexcept { return ib_; }
   const Material* GetMaterial() const noexcept { return material_; }
+
+  void SetMaterial(Material* material) noexcept { material_ = material; }
 
  private:
   std::vector<Vertex> vb_;
