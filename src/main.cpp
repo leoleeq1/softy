@@ -3,11 +3,13 @@
 #include <chrono>
 #include <cstdint>
 #include <format>
+#include <memory>
 #include <print>
 #include <thread>
 
 #include "core/property.h"
 #include "core/transform.h"
+#include "geometry/generator.h"
 #include "math/math.h"
 #include "math/matrix.h"
 #include "math/vector.h"
@@ -44,35 +46,13 @@ int32_t main([[maybe_unused]] int32_t argc, [[maybe_unused]] char** argv) {
     return EXIT_FAILURE;
   }
 
-  softy::Shader unlitColorShader{softy::UnlitColorShader()};
+  softy::Shader shader{softy::VertexColorShader()};
   softy::Color color{0xFFFFFFFF};
-  softy::Material material{&unlitColorShader};
+  softy::Material material{&shader};
   material.SetProperty("Color_", color);
 
-  softy::Mesh cube{
-      std::array{
-          softy::Vertex(softy::v4f{-0.5f, -0.5f, -0.5f, 1.0f}, softy::v3f{},
-                        softy::v2f{}, softy::Color{0xFFFF0000}),
-          softy::Vertex(softy::v4f{-0.5f, -0.5f, +0.5f, 1.0f}, softy::v3f{},
-                        softy::v2f{}, softy::Color{0xFF00FF00}),
-          softy::Vertex(softy::v4f{+0.5f, -0.5f, +0.5f, 1.0f}, softy::v3f{},
-                        softy::v2f{}, softy::Color{0xFF0000FF}),
-          softy::Vertex(softy::v4f{+0.5f, -0.5f, -0.5f, 1.0f}, softy::v3f{},
-                        softy::v2f{}, softy::Color{0xFFFFFF00}),
-          softy::Vertex(softy::v4f{-0.5f, +0.5f, -0.5f, 1.0f}, softy::v3f{},
-                        softy::v2f{}, softy::Color{0xFF00FFFF}),
-          softy::Vertex(softy::v4f{-0.5f, +0.5f, +0.5f, 1.0f}, softy::v3f{},
-                        softy::v2f{}, softy::Color{0xFFFF00FF}),
-          softy::Vertex(softy::v4f{+0.5f, +0.5f, +0.5f, 1.0f}, softy::v3f{},
-                        softy::v2f{}, softy::Color{0xFFFF0FF0}),
-          softy::Vertex(softy::v4f{+0.5f, +0.5f, -0.5f, 1.0f}, softy::v3f{},
-                        softy::v2f{}, softy::Color{0xFF0FFFF0}),
-      },
-      // std::array<int32_t, 6>{0, 4, 7, 0, 7, 3},
-      std::array<std::size_t, 36>{0, 2, 1, 0, 3, 2, 0, 4, 7, 0, 7, 3,
-                                  1, 5, 4, 1, 4, 0, 2, 6, 5, 2, 5, 1,
-                                  3, 7, 6, 3, 6, 2, 4, 5, 6, 4, 6, 7},
-      &material};
+  std::unique_ptr<softy::Mesh> cube = softy::CreateCube();
+  cube->SetMaterial(&material);
   softy::Transform cubeTransform{};
 
   softy::Camera cam{&rt};
@@ -101,7 +81,7 @@ int32_t main([[maybe_unused]] int32_t argc, [[maybe_unused]] char** argv) {
         .matProjection = cam.GetProjectionMatrix(),
     });
 
-    renderPipeline->AddObject(&cube, cubeTransform.GetTRS());
+    renderPipeline->AddObject(cube.get(), cubeTransform.GetTRS());
     renderPipeline->Render(&cam);
     window.Present();
 
