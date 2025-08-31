@@ -34,6 +34,7 @@ pub fn build(b: *std.Build) void {
         .files = &.{
             "src/main.cpp",
             "src/core/transform.cpp",
+            "src/geometry/generator.cpp",
             "src/render/buffer.cpp",
             "src/render/camera.cpp",
             "src/render/forward_render_pipeline.cpp",
