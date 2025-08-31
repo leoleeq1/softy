@@ -219,7 +219,6 @@ static void DrawTriangle(const ConstantBuffer& constantBuffer,
       max(v0.position[0], max(v1.position[0], v2.position[0])));
 
   v2i p{xMin, yMin};
-  Edge area{v0.position, v1.position, v2.position};
   Edge edge0{v0.position, v1.position, p};
   Edge edge1{v1.position, v2.position, p};
   Edge edge2{v2.position, v0.position, p};
