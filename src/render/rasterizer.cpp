@@ -1,7 +1,10 @@
 #include "render/rasterizer.h"
 
+#include <algorithm>
+#include <array>
 #include <functional>
 #include <limits>
+#include <ranges>
 
 #include "math/math.h"
 #include "math/matrix.h"
@@ -166,7 +169,89 @@ std::vector<VertexOutput> HomogeneousClipping(
   return outputs;
 }
 
-void Rasterize(ColorBuffer& renderTarget,
+struct Edge {
+  Edge(v2i v0, v2i v1, v2i p) {
+    int32_t a = v0[1] - v1[1];
+    int32_t b = v1[0] - v0[0];
+    int32_t c = v0[0] * v1[1] - v0[1] * v1[0];
+
+    oneStepX = v4i::One() * (a * StepXSize);
+    oneStepY = v4i::One() * (b * StepYSize);
+
+    v4i x = v4i::One() * p[0] + v4i{0, 1, 2, 3};
+    v4i y = v4i::One() * p[1];
+
+    equation = (v4i::One() * a) * x + (v4i::One() * b) * y + (v4i::One() * c);
+  }
+
+  static constexpr int32_t StepXSize = 4;
+  static constexpr int32_t StepYSize = 1;
+
+  v4i oneStepX;
+  v4i oneStepY;
+
+  v4i equation;
+};
+
+static bool IsTopOrLeftEdge(v2i v0, v2i v1) {
+  v2i e = v1 - v0;
+  bool isLeft = e[1] > 0;
+  bool isTop = e[1] == 0 && e[0] < 0;
+  return isLeft | isTop;
+}
+
+static void DrawTriangle(const ConstantBuffer& constantBuffer,
+                         ColorBuffer& renderTarget, const VertexOutput& v0,
+                         const VertexOutput& v1, const VertexOutput& v2,
+                         FragmentShader fs) {
+  std::array<VertexOutput, 3> verts{v0, v1, v2};
+  std::ranges::sort(verts, [](const auto& a, const auto& b) {
+    return a.position[1] < b.position[1];
+  });
+
+  int32_t yMin = static_cast<int32_t>(
+      min(v0.position[1], min(v1.position[1], v2.position[1])));
+  int32_t yMax = static_cast<int32_t>(
+      max(v0.position[1], max(v1.position[1], v2.position[1])));
+  int32_t xMin = static_cast<int32_t>(
+      min(v0.position[0], min(v1.position[0], v2.position[0])));
+  int32_t xMax = static_cast<int32_t>(
+      max(v0.position[0], max(v1.position[0], v2.position[0])));
+
+  v2i p{xMin, yMin};
+  Edge area{v0.position, v1.position, v2.position};
+  Edge edge0{v0.position, v1.position, p};
+  Edge edge1{v1.position, v2.position, p};
+  Edge edge2{v2.position, v0.position, p};
+
+  for (; p[1] <= yMax; p[1] += Edge::StepYSize) {
+    v4i w0{edge0.equation};
+    v4i w1{edge1.equation};
+    v4i w2{edge2.equation};
+
+    for (p[0] = xMin; p[0] <= xMax; p[0] += Edge::StepXSize) {
+      v4i mask{w0 | w1 | w2};
+      if (mask[0] >= 0 || mask[1] >= 0 || mask[2] >= 0 || mask[3] >= 0) {
+        for (int32_t x = 0; x < Edge::StepXSize; ++x) {
+          v3f b = barycentricCoordinate(v2f{v0.position}, v2f{v1.position},
+                                        v2f{v2.position}, v2f{p[0] + x, p[1]});
+          VertexOutput v = lerp(v0, v1, v2, b);
+          renderTarget.SetPixel(p[0] + x, p[1], fs(constantBuffer, v));
+        }
+      }
+
+      w0 += edge0.oneStepX;
+      w1 += edge1.oneStepX;
+      w2 += edge2.oneStepX;
+    }
+
+    edge0.equation += edge0.oneStepY;
+    edge1.equation += edge1.oneStepY;
+    edge2.equation += edge2.oneStepY;
+  }
+}
+
+void Rasterize(const ConstantBuffer& constantBuffer, ColorBuffer& renderTarget,
                const std::vector<VertexOutput>& vsOutputs,
                const std::vector<int>& indices, FragmentShader fs) {
   std::vector<VertexOutput> culled;
@@ -211,9 +296,7 @@ void Rasterize(ColorBuffer& renderTarget,
       continue;
     }
 
-    renderTarget.DrawLine(v0.position, v1.position, Color::Red());
-    renderTarget.DrawLine(v1.position, v2.position, Color::Red());
-    renderTarget.DrawLine(v0.position, v2.position, Color::Red());
+    DrawTriangle(constantBuffer, renderTarget, v0, v1, v2, fs);
   }
 }
 }  // namespace softy
