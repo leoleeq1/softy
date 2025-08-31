@@ -24,8 +24,8 @@ struct vec {
 
   template <Arithmetic U, std::size_t M>
   constexpr vec(const vec<U, M>& rhs) {
-    static_assert(M <= N, "Invalid number of arguments!");
-    for (std::size_t i = 0; i < M; ++i) {
+    constexpr std::size_t n = min(N, M);
+    for (std::size_t i = 0; i < n; ++i) {
       v[i] = static_cast<T>(rhs.v[i]);
     }
   }
@@ -51,7 +51,7 @@ struct vec {
   template <Arithmetic U, std::size_t M>
   constexpr operator vec<U, M>() {
     vec<U, M> vec{};
-    constexpr std::size_t n = std::min(N, M);
+    constexpr std::size_t n = min(N, M);
     for (std::size_t i = 0; i < n; ++i) {
       vec.v[i] = static_cast<U>(v[i]);
     }
@@ -106,8 +106,8 @@ struct alignas(alignof(T) * 4) vec<T, 4> {
 
   template <Arithmetic U, std::size_t M>
   constexpr vec(const vec<U, M>& rhs) {
-    static_assert(M <= 4, "Invalid number of arguments!");
-    for (std::size_t i = 0; i < M; ++i) {
+    constexpr std::size_t n = min(4uz, M);
+    for (std::size_t i = 0; i < n; ++i) {
       v[i] = static_cast<T>(rhs.v[i]);
     }
   }
@@ -133,7 +133,7 @@ struct alignas(alignof(T) * 4) vec<T, 4> {
   template <Arithmetic U, std::size_t M>
   constexpr operator vec<U, M>() {
     vec<U, M> vec{};
-    constexpr std::size_t n = std::min(4uz, M);
+    constexpr std::size_t n = min(4uz, M);
     for (std::size_t i = 0; i < n; ++i) {
       vec.v[i] = static_cast<U>(v[i]);
     }
@@ -207,6 +207,22 @@ constexpr bool equals(vec<T, N> lhs, vec<T, N> rhs,
   }
 
   return true;
+}
+
+template <Arithmetic T, std::size_t N>
+constexpr vec<T, N> operator|(vec<T, N> lhs, vec<T, N> rhs) {
+  for (std::size_t i = 0; i < N; ++i) {
+    lhs[i] |= rhs[i];
+  }
+  return lhs;
+}
+
+template <Arithmetic T, std::size_t N>
+constexpr vec<T, N> operator&(vec<T, N> lhs, vec<T, N> rhs) {
+  for (std::size_t i = 0; i < N; ++i) {
+    lhs[i] &= rhs[i];
+  }
+  return lhs;
 }
 
 template <Arithmetic T, std::size_t N>
@@ -365,34 +381,43 @@ constexpr same_size_float_t<T> fraction(vec<T, N> v0, vec<T, N> v1,
   return dot(v, v) / denom;
 }
 
-template <Arithmetic T>
-constexpr vec<same_size_float_t<T>, 3> barycentricCoordinate(vec<T, 3> v0,
-                                                             vec<T, 3> v1,
-                                                             vec<T, 3> p) {
+template <Arithmetic T, std::size_t N>
+constexpr vec<same_size_float_t<T>, 3> barycentricCoordinate(vec<T, N> v0,
+                                                             vec<T, N> v1,
+                                                             vec<T, N> p) {
   vec<T, 3> out{};
-  vec<T, 3> u = v1 - v0;
-  vec<T, 3> v = p - v0;
+  vec<T, N> u = v1 - v0;
+  vec<T, N> v = p - v0;
 
   same_size_float_t<T> denom = dot(u, u);
   out[1] = dot(v, v) / denom;
   out[0] = static_cast<same_size_float_t<T>>(1) - out[1];
+
+  return out;
 }
 
-template <Arithmetic T>
-constexpr vec<same_size_float_t<T>, 3> barycentricCoordinate(vec<T, 3> v0,
-                                                             vec<T, 3> v1,
-                                                             vec<T, 3> v2,
-                                                             vec<T, 3> p) {
+template <Arithmetic T, std::size_t N>
+constexpr vec<same_size_float_t<T>, 3> barycentricCoordinate(vec<T, N> v0,
+                                                             vec<T, N> v1,
+                                                             vec<T, N> v2,
+                                                             vec<T, N> p) {
   vec<T, 3> out{};
-  vec<T, 3> u = v1 - v0;
-  vec<T, 3> v = v2 - v0;
-  vec<T, 3> w = p - v0;
+  vec<T, N> u = v1 - v0;
+  vec<T, N> v = v2 - v0;
+  vec<T, N> w = p - v0;
 
-  same_size_float_t<T> denom =
-      (dot(u, u) * dot(v, v) - (dot(u, v) * dot(v, u)));
-  out[1] = (dot(w, u) * dot(v, v) - dot(w, v) * dot(v, u)) / denom;
-  out[2] = (dot(w, v) * dot(u, u) - dot(w, u) * dot(u, v)) / denom;
+  same_size_float_t<T> d00 = dot(u, u);
+  same_size_float_t<T> d11 = dot(v, v);
+  same_size_float_t<T> d01 = dot(u, v);
+  same_size_float_t<T> d20 = dot(w, u);
+  same_size_float_t<T> d21 = dot(w, v);
+
+  same_size_float_t<T> denom = (d00 * d11 - (d01 * d01));
+  out[1] = (d20 * d11 - d21 * d01) / denom;
+  out[2] = (d21 * d00 - d20 * d01) / denom;
   out[0] = static_cast<same_size_float_t<T>>(1) - out[1] - out[2];
+
+  return out;
 }
 }  // namespace softy
 
