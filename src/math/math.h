@@ -137,6 +137,20 @@ constexpr HasArithmeticOp auto lerp(HasArithmeticOp auto a,
   return a + t * (b - a);
 }
 
+// (1 - u - v) * a + u * b + v * c
+constexpr auto lerp(HasArithmeticOp auto a, HasArithmeticOp auto b,
+                    HasArithmeticOp auto c, HasArithmeticOp auto u,
+                    HasArithmeticOp auto v) noexcept {
+  return (static_cats<decltype(u)>(1) - u - v) * a + u * b + v * c;
+}
+
+// u * a + v * b + w * c (u: 1 - v - w)
+constexpr auto lerp(HasArithmeticOp auto a, HasArithmeticOp auto b,
+                    HasArithmeticOp auto c, HasArithmeticOp auto u,
+                    HasArithmeticOp auto v, HasArithmeticOp auto w) noexcept {
+  return u * a + v * b + w * c;
+}
+
 constexpr auto clamp(Arithmetic auto v, Arithmetic auto min,
                      Arithmetic auto max) noexcept {
   return std::clamp(v, min, max);
