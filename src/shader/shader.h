@@ -30,6 +30,8 @@ class Shader {
   FragmentShader fs_;
 };
 
+Shader UvColorShader();
+Shader VertexColorShader();
 Shader UnlitColorShader();
 }  // namespace softy
 
