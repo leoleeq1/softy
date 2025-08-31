@@ -6,11 +6,19 @@
 #include "math/math.h"
 
 namespace softy {
+constexpr uint8_t ClampColor(int32_t color);
+constexpr uint8_t ClampColor(float color);
+
 struct Color {
   constexpr Color() : argb{} {}
   constexpr Color(uint32_t argb) : argb{argb} {}
   constexpr Color(uint8_t r, uint8_t g, uint8_t b, uint8_t a = 0xFF)
       : b{b}, g{g}, r{r}, a{a} {}
+  constexpr Color(float r, float g, float b, float a = 1.0f)
+      : b{ClampColor(b)},
+        g{ClampColor(g)},
+        r{ClampColor(r)},
+        a{ClampColor(a)} {}
 
   union {
     uint32_t argb{};
