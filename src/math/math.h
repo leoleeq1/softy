@@ -162,6 +162,14 @@ constexpr auto clamp(auto v, auto min, auto max) noexcept {
   return v > max ? max : v < min ? min : v;
 }
 
+constexpr auto saturate(Arithmetic auto v) noexcept {
+  return clamp(v, static_cast<decltype(v)>(0), static_cast<decltype(v)>(1));
+}
+
+constexpr auto saturate(auto v) noexcept {
+  return clamp(v, static_cast<decltype(v)>(0), static_cast<decltype(v)>(1));
+}
+
 constexpr auto clampDegree360(Arithmetic auto degree) {
   using T = decltype(degree);
   T _360{static_cast<T>(360)};
