@@ -27,7 +27,7 @@ class Window {
   Window& operator=(Window&&) = delete;
 
   bool Create(WindowDescriptor& descriptor, EventChannel& eventChannel,
-              Buffer& colorBuffer);
+              ColorBuffer& colorBuffer);
   bool Update();
   void Present();
   void SetTitle(std::string_view title);

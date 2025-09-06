@@ -17,7 +17,7 @@ struct Window::Impl {
 
   WindowDescriptor& descriptor;
   EventChannel& channel;
-  Buffer& colorBuffer;
+  ColorBuffer& colorBuffer;
   HWND hwnd;
 };
 
@@ -29,7 +29,7 @@ Window::~Window() {
 }
 
 bool Window::Create(WindowDescriptor& descriptor, EventChannel& channel,
-                    Buffer& colorBuffer) {
+                    ColorBuffer& colorBuffer) {
   impl_ = std::make_unique<Impl>(descriptor, channel, colorBuffer);
 
   const WNDCLASSEXA wc{
@@ -107,15 +107,15 @@ LRESULT Window::Impl::s_WndProc(HWND hwnd, uint32_t msg, WPARAM wparam,
       PAINTSTRUCT ps;
       HDC hdc = BeginPaint(hwnd, &ps);
       HDC memdc = CreateCompatibleDC(hdc);
-      HBITMAP bitmap = CreateCompatibleBitmap(hdc, impl->descriptor.width,
-                                              impl->descriptor.height);
+      HBITMAP bitmap = CreateCompatibleBitmap(hdc, impl->colorBuffer.GetWidth(),
+                                              impl->colorBuffer.GetHeight());
       auto* oldBitmap = reinterpret_cast<HBITMAP>(SelectObject(memdc, bitmap));
 
       const BITMAPINFO bmi{
           .bmiHeader{
               .biSize = sizeof(BITMAPINFOHEADER),
-              .biWidth = impl->descriptor.width,
-              .biHeight = impl->descriptor.height,
+              .biWidth = impl->colorBuffer.GetWidth(),
+              .biHeight = impl->colorBuffer.GetHeight(),
               .biPlanes = 1,
               .biBitCount = 32,
               .biCompression = BI_RGB,
@@ -128,12 +128,14 @@ LRESULT Window::Impl::s_WndProc(HWND hwnd, uint32_t msg, WPARAM wparam,
           .bmiColors{},
       };
 
-      SetDIBitsToDevice(memdc, 0, 0, static_cast<DWORD>(impl->descriptor.width),
-                        static_cast<DWORD>(impl->descriptor.height), 0, 0, 0,
-                        static_cast<UINT>(impl->descriptor.height),
-                        impl->colorBuffer.Get(), &bmi, DIB_RGB_COLORS);
-      BitBlt(hdc, 0, 0, impl->descriptor.width, impl->descriptor.height, memdc,
-             0, 0, SRCCOPY);
+      SetDIBitsToDevice(
+          memdc, 0, 0, static_cast<DWORD>(impl->colorBuffer.GetWidth()),
+          static_cast<DWORD>(impl->colorBuffer.GetHeight()), 0, 0, 0,
+          static_cast<UINT>(impl->colorBuffer.GetHeight()),
+          impl->colorBuffer.GetData().Get(), &bmi, DIB_RGB_COLORS);
+      StretchBlt(hdc, 0, 0, impl->descriptor.width, impl->descriptor.height,
+                 memdc, 0, 0, impl->colorBuffer.GetWidth(),
+                 impl->colorBuffer.GetHeight(), SRCCOPY);
       SelectObject(memdc, oldBitmap);
       DeleteObject(bitmap);
       DeleteDC(memdc);
@@ -142,6 +144,9 @@ LRESULT Window::Impl::s_WndProc(HWND hwnd, uint32_t msg, WPARAM wparam,
     }
     case WM_SIZE: {
       if (wparam == SIZE_MINIMIZED) {
+      } else {
+        impl->descriptor.width = LOWORD(lparam);
+        impl->descriptor.height = HIWORD(lparam);
       }
       break;
     }
