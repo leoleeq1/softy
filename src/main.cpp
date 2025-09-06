@@ -12,6 +12,7 @@
 #include "geometry/generator.h"
 #include "math/math.h"
 #include "math/matrix.h"
+#include "math/quaternion.h"
 #include "math/vector.h"
 #include "render/buffer.h"
 #include "render/camera.h"
@@ -29,20 +30,20 @@ int32_t main([[maybe_unused]] int32_t argc, [[maybe_unused]] char** argv) {
   softy::EventChannel channel{};
   softy::WindowDescriptor descriptor{
       .name = "softy",
-      .width = 360,
-      .height = 240,
+      .width = 800,
+      .height = 600,
   };
   softy::Window window{};
 
   softy::ConstantBuffer cb{};
-  softy::ColorBuffer rt{descriptor.width, descriptor.height};
-  softy::DepthBuffer db{descriptor.width, descriptor.height};
+  softy::ColorBuffer rt{640, 480};
+  softy::DepthBuffer db{640, 480};
   std::unique_ptr<softy::RenderPipeline> renderPipeline(
       new softy::ForwardRenderPipeline());
 
   renderPipeline->SetConstantBuffer(&cb);
 
-  if (!window.Create(descriptor, channel, rt.GetData())) {
+  if (!window.Create(descriptor, channel, rt)) {
     return EXIT_FAILURE;
   }
 
@@ -73,7 +74,9 @@ int32_t main([[maybe_unused]] int32_t argc, [[maybe_unused]] char** argv) {
     // cam.GetTransform().rotation += softy::v3f(0.0f, 60.0f * dt, 0.0f);
     cam.GetTransform().LookAt(softy::v3f{0.0f, 0.0f, 0.0f}, true);
     // cubeTransform.scale = softy::v3f::One() * 2.0f;
-    cubeTransform.rotation += softy::v3f(0.0f, 60.0f * dt, 75.0f * dt);
+    cubeTransform.rotation =
+        softy::quaternion(softy::ToEuler(cubeTransform.rotation) +
+                          softy::v3f(0.0f, 60.0f * dt, 75.0f * dt));
 
     cb.SetData(softy::ConstantBufferData{
         .matWorld = softy::mat4::Identity(),
