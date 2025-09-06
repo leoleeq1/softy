@@ -5,8 +5,8 @@
 
 #include "math/math.h"
 #include "math/matrix.h"
+#include "math/quaternion.h"
 #include "math/vector.h"
-#include "transform.h"
 
 namespace softy {
 Transform::Transform()
@@ -31,7 +31,9 @@ Transform::Transform()
 
 v3f Transform::GetWorldPosition() const noexcept { return worldPosition_; }
 
-v3f Transform::GetWorldRotation() const noexcept { return worldRotation_; }
+quaternion Transform::GetWorldRotation() const noexcept {
+  return worldRotation_;
+}
 
 v3f Transform::GetWorldScale() const noexcept { return worldScale_; }
 
@@ -105,13 +107,15 @@ void Transform::SetParent(Transform* parent) {
   Update();
 }
 
-void Transform::SetLocalPositionRotation(v3f position, v3f rotation) noexcept {
+void Transform::SetLocalPositionRotation(v3f position,
+                                         quaternion rotation) noexcept {
   localPosition_ = position;
   localRotation_ = rotation;
   Update();
 }
 
-void Transform::SetWorldPositionRotation(v3f position, v3f rotation) noexcept {
+void Transform::SetWorldPositionRotation(v3f position,
+                                         quaternion rotation) noexcept {
   worldPosition_ = position;
   worldRotation_ = rotation;
 
@@ -141,7 +145,7 @@ void Transform::LookAt(v3f target, bool inverse) noexcept {
   rotation[2] = clampDegree360(numbers::fRad2Deg *
                                asin(clamp(right[1] / cp, -1.0f, 1.0f)));
 
-  this->rotation = rotation;
+  this->rotation = quaternion{rotation};
 }
 
 void Transform::CalculateAxes() noexcept {
