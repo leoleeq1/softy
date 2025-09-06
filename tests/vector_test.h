@@ -120,4 +120,12 @@ TEST(Vector, TestNormalize) {
   ASSERT_EQ_FLOAT(expected, actual);
 }
 
+TEST(Vector, TestReflect) {
+  constexpr softy::v3f n{softy::v3f::Basis(1)};
+  constexpr softy::v3f p{softy::v3f{1.0f, 1.0f, 0.0f}};
+  constexpr softy::v3f expected{-1.0f, 1.0f, 0.0f};
+  constexpr softy::v3f actual{softy::reflect(p, n)};
+  ASSERT_EQ_FLOAT(expected, actual);
+}
+
 #endif  // VECTOR_TEST_H_

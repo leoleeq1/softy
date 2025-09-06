@@ -372,6 +372,12 @@ constexpr vec<same_size_float_t<T>, N> normalize(vec<T, N> v) {
 }
 
 template <Arithmetic T, std::size_t N>
+constexpr vec<same_size_float_t<T>, N> reflect(vec<T, N> p, vec<T, N> n) {
+  vec<same_size_float_t<T>, N> pn{n * dot(p, n)};
+  return vec<same_size_float_t<T>, N>{-p + 2 * pn};
+}
+
+template <Arithmetic T, std::size_t N>
 constexpr same_size_float_t<T> fraction(vec<T, N> v0, vec<T, N> v1,
                                         vec<T, N> p) {
   vec<T, N> u = v1 - v0;
