@@ -18,6 +18,8 @@ constexpr float fInv_Pi = std::numbers::inv_pi_v<float>;
 constexpr float fInv_SqrtPi = std::numbers::inv_sqrtpi_v<float>;
 constexpr float fRad2Deg = 57.295779513082320876798154814105f;
 constexpr float fDeg2Rad = 0.01745329251994329576923690768489f;
+constexpr float fSmallNumber = 1.e-8f;
+constexpr float fKindOfSmallNumber = 1.e-4f;
 
 constexpr double E = std::numbers::e_v<double>;
 constexpr double Pi = std::numbers::pi_v<double>;
