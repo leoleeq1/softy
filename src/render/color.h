@@ -4,6 +4,7 @@
 #include <cstdint>
 
 #include "math/math.h"
+#include "math/vector.h"
 
 namespace softy {
 constexpr uint8_t ClampColor(int32_t color);
@@ -19,6 +20,11 @@ struct Color {
         g{ClampColor(g)},
         r{ClampColor(r)},
         a{ClampColor(a)} {}
+  constexpr explicit Color(v4f color)
+      : b{ClampColor(color[2])},
+        g{ClampColor(color[1])},
+        r{ClampColor(color[0])},
+        a{ClampColor(color[3])} {}
 
   union {
     uint32_t argb{};
@@ -29,6 +35,11 @@ struct Color {
       uint8_t a;
     };
   };
+
+  constexpr explicit operator v4f() const {
+    return v4f{static_cast<float>(r) / 0xFF, static_cast<float>(g) / 0xFF,
+               static_cast<float>(b) / 0xFF, static_cast<float>(a) / 0xFF};
+  }
 
   static Color White() { return Color{0xFFFFFFFF}; };
   static Color Black() { return Color{0xFF000000}; };
