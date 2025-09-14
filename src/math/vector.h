@@ -8,6 +8,8 @@
 #include <cstdint>
 #include <format>
 #include <limits>
+#include <string>
+#include <string_view>
 #include <type_traits>
 
 #include "math/math.h"
@@ -234,6 +236,22 @@ constexpr vec<T, N> operator+(vec<T, N> lhs, vec<T, N> rhs) {
 }
 
 template <Arithmetic T, std::size_t N>
+constexpr vec<T, N> operator+(T lhs, vec<T, N> rhs) {
+  for (std::size_t i = 0; i < N; ++i) {
+    rhs[i] += lhs;
+  }
+  return rhs;
+}
+
+template <Arithmetic T, std::size_t N>
+constexpr vec<T, N> operator+(vec<T, N> lhs, T rhs) {
+  for (std::size_t i = 0; i < N; ++i) {
+    lhs[i] += rhs;
+  }
+  return lhs;
+}
+
+template <Arithmetic T, std::size_t N>
 constexpr vec<T, N>& operator+=(vec<T, N>& lhs, vec<T, N> rhs) {
   for (std::size_t i = 0; i < N; ++i) {
     lhs[i] += rhs[i];
@@ -245,6 +263,22 @@ template <Arithmetic T, std::size_t N>
 constexpr vec<T, N> operator-(vec<T, N> lhs, vec<T, N> rhs) {
   for (std::size_t i = 0; i < N; ++i) {
     lhs[i] -= rhs[i];
+  }
+  return lhs;
+}
+
+template <Arithmetic T, std::size_t N>
+constexpr vec<T, N> operator-(T lhs, vec<T, N> rhs) {
+  for (std::size_t i = 0; i < N; ++i) {
+    rhs[i] -= lhs;
+  }
+  return rhs;
+}
+
+template <Arithmetic T, std::size_t N>
+constexpr vec<T, N> operator-(vec<T, N> lhs, T rhs) {
+  for (std::size_t i = 0; i < N; ++i) {
+    lhs[i] -= rhs;
   }
   return lhs;
 }
@@ -311,6 +345,16 @@ constexpr vec<T, N> operator/(vec<T, N> lhs, vec<T, N> rhs) {
 
 template <Arithmetic T, std::size_t N>
 constexpr vec<T, N> operator/(vec<T, N> lhs, Arithmetic auto rhs) {
+  assert(rhs > std::numeric_limits<decltype(rhs)>::epsilon() ||
+         rhs < -std::numeric_limits<decltype(rhs)>::epsilon());
+  for (std::size_t i = 0; i < N; ++i) {
+    lhs[i] /= rhs;
+  }
+  return lhs;
+}
+
+template <Arithmetic T, std::size_t N>
+constexpr vec<T, N>& operator/=(vec<T, N>& lhs, Arithmetic auto rhs) {
   assert(rhs > std::numeric_limits<decltype(rhs)>::epsilon() ||
          rhs < -std::numeric_limits<decltype(rhs)>::epsilon());
   for (std::size_t i = 0; i < N; ++i) {
@@ -429,11 +473,21 @@ constexpr vec<same_size_float_t<T>, 3> barycentricCoordinate(vec<T, N> v0,
 
 namespace std {
 template <softy::Arithmetic T, std::size_t N>
-struct std::formatter<softy::vec<T, N>> {
-  constexpr auto parse(std::format_parse_context& ctx) { return ctx.begin(); }
-
+struct std::formatter<softy::vec<T, N>> : std::formatter<string_view> {
   auto format(const softy::vec<T, N>& v, std::format_context& ctx) const {
-    return std::format_to(ctx.out(), "{}", v.v);
+    std::string temp;
+    std::format_to(std::back_inserter(temp), "[");
+
+    for (std::size_t i = 0; i < N - 1; ++i) {
+      std::format_to(std::back_inserter(temp),
+                     std::is_floating_point_v<T> ? "{:.2f}, " : "{}, ", v.v[i]);
+    }
+
+    std::format_to(std::back_inserter(temp),
+                   std::is_floating_point_v<T> ? "{:.2f}" : "{}", v.v[N - 1]);
+
+    std::format_to(std::back_inserter(temp), "]");
+    return std::formatter<string_view>::format(temp, ctx);
   }
 };
 }  // namespace std
