@@ -1,5 +1,6 @@
 #include "event/event_channel.h"
 #include "event/window_event.h"
+#include "input/keycode.h"
 #include "render/buffer.h"
 #include "render/color.h"
 #include "window/window.h"
@@ -10,6 +11,8 @@
 #include <memory>
 
 namespace softy {
+static KeyCode GetKeyCode(WPARAM virtualKey);
+
 struct Window::Impl {
   ~Impl() = default;
   static LRESULT CALLBACK s_WndProc(HWND hwnd, uint32_t msg, WPARAM wparam,
@@ -150,6 +153,16 @@ LRESULT Window::Impl::s_WndProc(HWND hwnd, uint32_t msg, WPARAM wparam,
       }
       break;
     }
+    case WM_KEYDOWN: {
+      KeyCode key = GetKeyCode(wparam);
+      impl->channel.Send(WindowKeyDownEvent{key});
+      break;
+    }
+    case WM_KEYUP: {
+      KeyCode key = GetKeyCode(wparam);
+      impl->channel.Send(WindowKeyUpEvent{key});
+      break;
+    }
     case WM_DESTROY: {
       PostQuitMessage(0);
       break;
@@ -161,5 +174,168 @@ LRESULT Window::Impl::s_WndProc(HWND hwnd, uint32_t msg, WPARAM wparam,
       break;
   }
   return DefWindowProc(hwnd, msg, wparam, lparam);
+}
+
+static KeyCode GetKeyCode(WPARAM virtualKey) {
+  switch (virtualKey) {
+    case VK_LBUTTON:
+      return KeyCode::Mouse0;
+    case VK_RBUTTON:
+      return KeyCode::Mouse1;
+    case VK_MBUTTON:
+      return KeyCode::Mouse2;
+    case VK_BACK:
+      return KeyCode::Backspace;
+    case VK_TAB:
+      return KeyCode::Tab;
+    case VK_RETURN:
+      return KeyCode::Return;
+    case VK_SPACE:
+      return KeyCode::Space;
+    case VK_PRIOR:
+      return KeyCode::PageUp;
+    case VK_NEXT:
+      return KeyCode::PageDown;
+    case VK_END:
+      return KeyCode::End;
+    case VK_HOME:
+      return KeyCode::Home;
+    case VK_LEFT:
+      return KeyCode::ArrowLeft;
+    case VK_UP:
+      return KeyCode::ArrowUp;
+    case VK_RIGHT:
+      return KeyCode::ArrowRight;
+    case VK_DOWN:
+      return KeyCode::ArrowDown;
+    case '0':
+      return KeyCode::Alpha0;
+    case '1':
+      return KeyCode::Alpha1;
+    case '2':
+      return KeyCode::Alpha2;
+    case '3':
+      return KeyCode::Alpha3;
+    case '4':
+      return KeyCode::Alpha4;
+    case '5':
+      return KeyCode::Alpha5;
+    case '6':
+      return KeyCode::Alpha6;
+    case '7':
+      return KeyCode::Alpha7;
+    case '8':
+      return KeyCode::Alpha8;
+    case '9':
+      return KeyCode::Alpha9;
+    case 'A':
+      return KeyCode::A;
+    case 'B':
+      return KeyCode::B;
+    case 'C':
+      return KeyCode::C;
+    case 'D':
+      return KeyCode::D;
+    case 'E':
+      return KeyCode::E;
+    case 'F':
+      return KeyCode::F;
+    case 'G':
+      return KeyCode::G;
+    case 'H':
+      return KeyCode::H;
+    case 'I':
+      return KeyCode::I;
+    case 'J':
+      return KeyCode::J;
+    case 'K':
+      return KeyCode::K;
+    case 'L':
+      return KeyCode::L;
+    case 'M':
+      return KeyCode::M;
+    case 'N':
+      return KeyCode::N;
+    case 'O':
+      return KeyCode::O;
+    case 'P':
+      return KeyCode::P;
+    case 'Q':
+      return KeyCode::Q;
+    case 'R':
+      return KeyCode::R;
+    case 'S':
+      return KeyCode::S;
+    case 'T':
+      return KeyCode::T;
+    case 'U':
+      return KeyCode::U;
+    case 'V':
+      return KeyCode::V;
+    case 'W':
+      return KeyCode::W;
+    case 'X':
+      return KeyCode::X;
+    case 'Y':
+      return KeyCode::Y;
+    case 'Z':
+      return KeyCode::Z;
+    case VK_NUMPAD0:
+      return KeyCode::Keypad0;
+    case VK_NUMPAD1:
+      return KeyCode::Keypad1;
+    case VK_NUMPAD2:
+      return KeyCode::Keypad2;
+    case VK_NUMPAD3:
+      return KeyCode::Keypad3;
+    case VK_NUMPAD4:
+      return KeyCode::Keypad4;
+    case VK_NUMPAD5:
+      return KeyCode::Keypad5;
+    case VK_NUMPAD6:
+      return KeyCode::Keypad6;
+    case VK_NUMPAD7:
+      return KeyCode::Keypad7;
+    case VK_NUMPAD8:
+      return KeyCode::Keypad8;
+    case VK_NUMPAD9:
+      return KeyCode::Keypad9;
+    case VK_F1:
+      return KeyCode::F1;
+    case VK_F2:
+      return KeyCode::F2;
+    case VK_F4:
+      return KeyCode::F4;
+    case VK_F5:
+      return KeyCode::F5;
+    case VK_F6:
+      return KeyCode::F6;
+    case VK_F7:
+      return KeyCode::F7;
+    case VK_F8:
+      return KeyCode::F8;
+    case VK_F9:
+      return KeyCode::F9;
+    case VK_F10:
+      return KeyCode::F10;
+    case VK_F11:
+      return KeyCode::F11;
+    case VK_F12:
+      return KeyCode::F12;
+    case VK_LSHIFT:
+      return KeyCode::LeftShift;
+    case VK_LCONTROL:
+      return KeyCode::LeftCtrl;
+    case VK_LMENU:
+      return KeyCode::LeftAlt;
+    case VK_RSHIFT:
+      return KeyCode::RightShift;
+    case VK_RCONTROL:
+      return KeyCode::RightCtrl;
+    case VK_RMENU:
+      return KeyCode::RightAlt;
+    default:
+      return KeyCode::None;
+  };
 }
 }  // namespace softy
