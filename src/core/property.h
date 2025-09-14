@@ -108,6 +108,36 @@ constexpr Property<T>& operator%=(Property<T>& lhs, const T& rhs) {
 }
 
 template <HasArithmeticOp T>
+constexpr T& operator+=(T& lhs, const Property<T>& rhs) {
+  lhs += T(rhs);
+  return lhs;
+}
+
+template <HasArithmeticOp T>
+constexpr T& operator-=(T& lhs, const Property<T>& rhs) {
+  lhs -= T(rhs);
+  return lhs;
+}
+
+template <HasArithmeticOp T>
+constexpr T& operator*=(T& lhs, const Property<T>& rhs) {
+  lhs *= T(rhs);
+  return lhs;
+}
+
+template <HasDivisionOp T>
+constexpr T& operator/=(T& lhs, const Property<T>& rhs) {
+  lhs /= T(rhs);
+  return lhs;
+}
+
+template <HasModuloOp T>
+constexpr T& operator%=(T& lhs, const Property<T>& rhs) {
+  lhs %= T(rhs);
+  return lhs;
+}
+
+template <HasArithmeticOp T>
 constexpr T operator+(const T& lhs, const Property<T>& rhs) {
   return lhs + T(rhs);
 }
@@ -160,6 +190,56 @@ constexpr T operator%(const T& lhs, const Property<T>& rhs) {
 template <HasModuloOp T>
 constexpr T operator%(const Property<T>& lhs, const T& rhs) {
   return T(lhs) % rhs;
+}
+
+template <HasArithmeticOp TProperty, Arithmetic T>
+constexpr TProperty operator+(const T& lhs, const Property<TProperty>& rhs) {
+  return lhs + TProperty(rhs);
+}
+
+template <HasArithmeticOp TProperty, Arithmetic T>
+constexpr TProperty operator+(const Property<TProperty>& lhs, const T& rhs) {
+  return TProperty(lhs) + rhs;
+}
+
+template <HasArithmeticOp TProperty, Arithmetic T>
+constexpr TProperty operator-(const T& lhs, const Property<TProperty>& rhs) {
+  return lhs - TProperty(rhs);
+}
+
+template <HasArithmeticOp TProperty, Arithmetic T>
+constexpr TProperty operator-(const Property<TProperty>& lhs, const T& rhs) {
+  return TProperty(lhs) - rhs;
+}
+
+template <HasArithmeticOp TProperty, Arithmetic T>
+constexpr TProperty operator*(const T& lhs, const Property<TProperty>& rhs) {
+  return lhs * TProperty(rhs);
+}
+
+template <HasArithmeticOp TProperty, Arithmetic T>
+constexpr TProperty operator*(const Property<TProperty>& lhs, const T& rhs) {
+  return TProperty(lhs) * rhs;
+}
+
+template <HasDivisionOp TProperty, Arithmetic T>
+constexpr TProperty operator/(const T& lhs, const Property<TProperty>& rhs) {
+  return lhs / TProperty(rhs);
+}
+
+template <HasDivisionOp TProperty, Arithmetic T>
+constexpr TProperty operator/(const Property<TProperty>& lhs, const T& rhs) {
+  return TProperty(lhs) / rhs;
+}
+
+template <HasModuloOp TProperty, Arithmetic T>
+constexpr TProperty operator%(const T& lhs, const Property<TProperty>& rhs) {
+  return lhs % TProperty(rhs);
+}
+
+template <HasModuloOp TProperty, Arithmetic T>
+constexpr TProperty operator%(const Property<TProperty>& lhs, const T& rhs) {
+  return TProperty(lhs) % rhs;
 }
 
 template <typename T>
