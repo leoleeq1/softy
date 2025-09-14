@@ -128,4 +128,27 @@ std::unique_ptr<Mesh> softy::CreateCube() {
 
   return mesh;
 }
+
+std::unique_ptr<Mesh> CreateQuad() {
+  std::unique_ptr<Mesh> mesh = std::make_unique<Mesh>(Mesh{
+      std::array{
+          // Back
+          Vertex(v4f{-0.5f, -0.5f, -0.5f, 1.0f},
+                 normalize(v3f{0.0f, 0.0f, -1.0f}), v2f{0.0f, 0.0f},
+                 Color{0xFFFFFFFF}),
+          Vertex(v4f{-0.5f, +0.5f, -0.5f, 1.0f},
+                 normalize(v3f{0.0f, 0.0f, -1.0f}), v2f{0.0f, 1.0f},
+                 Color{0xFFFFFFFF}),
+          Vertex(v4f{+0.5f, +0.5f, -0.5f, 1.0f},
+                 normalize(v3f{0.0f, 0.0f, -1.0f}), v2f{1.0f, 1.0f},
+                 Color{0xFFFFFFFF}),
+          Vertex(v4f{+0.5f, -0.5f, -0.5f, 1.0f},
+                 normalize(v3f{0.0f, 0.0f, -1.0f}), v2f{1.0f, 0.0f},
+                 Color{0xFFFFFFFF}),
+      },
+      std::array<std::size_t, 6>{0, 1, 2, 0, 2, 3},
+  });
+
+  return mesh;
+}
 }  // namespace softy
