@@ -143,7 +143,7 @@ constexpr HasArithmeticOp auto lerp(HasArithmeticOp auto a,
 constexpr auto lerp(HasArithmeticOp auto a, HasArithmeticOp auto b,
                     HasArithmeticOp auto c, HasArithmeticOp auto u,
                     HasArithmeticOp auto v) noexcept {
-  return (static_cats<decltype(u)>(1) - u - v) * a + u * b + v * c;
+  return (static_cast<decltype(u)>(1) - u - v) * a + u * b + v * c;
 }
 
 // u * a + v * b + w * c (u: 1 - v - w)
